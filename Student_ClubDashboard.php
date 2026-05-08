@@ -103,27 +103,63 @@ $safeFirstName = htmlspecialchars($firstName, ENT_QUOTES, 'UTF-8');
         <p class="text-slate-500 mt-2">Find your community and make your mark on campus.</p>
     </div>
     
-    <div id="clubGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        <?php foreach ($clubs as $club): ?>
-        <div class="club-card level-1-card p-6 hover:border-blue-400 hover:-translate-y-1 transition-all duration-300 group" data-name="<?= strtolower($club['club_name']) ?>">
-            <div class="w-14 h-14 bg-slate-50 rounded-2xl flex items-center justify-center font-black text-2xl text-blue-900 border border-slate-100 group-hover:bg-blue-900 group-hover:text-white transition-all duration-500 mb-6 uppercase">
-                <?= substr($club['club_name'], 0, 1) ?>
+    <div id="clubGrid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+
+    <?php foreach ($clubs as $club): ?>
+
+    <!-- CLUB CARD -->
+    <div 
+        class="club-card bg-gradient-to-br from-blue-900 to-blue-700 text-white rounded-3xl p-6 shadow-2xl hover:scale-[1.02] transition-all duration-300"
+        data-name="<?= strtolower($club['club_name']) ?>"
+    >
+
+        <div class="flex items-start justify-between">
+
+            <div class="w-14 h-14 rounded-2xl bg-white/10 backdrop-blur flex items-center justify-center">
+                <span class="material-symbols-outlined text-3xl">
+                    groups
+                </span>
             </div>
-            
-            <h3 class="text-xl font-black text-slate-900 tracking-tight mb-1 group-hover:text-blue-900"><?= htmlspecialchars($club['club_name']) ?></h3>
-            <p class="text-xs font-bold text-blue-600 mb-4 uppercase tracking-widest"><?= $club['category'] ?></p>
-            
-            <p class="text-sm text-slate-500 mb-8 line-clamp-3 leading-relaxed">
-                <?= htmlspecialchars($club['description'] ?? 'No description available.') ?>
-            </p>
-            
-            <button onclick="confirmJoin('<?= htmlspecialchars($club['club_name'], ENT_QUOTES) ?>', <?= $club['id'] ?>)" 
-                    class="w-full py-4 bg-blue-900 text-white font-black rounded-2xl text-sm hover:bg-blue-800 transition-all active:scale-95 shadow-xl shadow-blue-100 group-hover:shadow-blue-200">
-                Join Organization
-            </button>
+
+            <span class="text-[10px] uppercase tracking-widest bg-white/10 px-3 py-1 rounded-full font-bold">
+                <?= htmlspecialchars($club['category']) ?>
+            </span>
+
         </div>
-        <?php endforeach; ?>
+
+        <div class="mt-6">
+
+            <h3 class="text-2xl font-black leading-tight">
+                <?= htmlspecialchars($club['club_name']) ?>
+            </h3>
+
+            <p class="text-blue-100 text-sm mt-3 line-clamp-3">
+                <?= !empty($club['description']) 
+                    ? htmlspecialchars($club['description']) 
+                    : 'No description available.' ?>
+            </p>
+
+        </div>
+
+        <div class="mt-6 pt-4 border-t border-white/10 flex justify-between items-center">
+
+            <p class="text-xs text-blue-200 uppercase tracking-widest font-bold">
+                Club Organization
+            </p>
+
+            <button 
+                onclick="confirmJoin('<?= htmlspecialchars($club['club_name'], ENT_QUOTES) ?>', <?= $club['id'] ?>)"
+                class="bg-white/10 hover:bg-white/20 transition-all px-4 py-2 rounded-xl text-sm font-bold active:scale-95">
+                Join
+            </button>
+
+        </div>
+
     </div>
+
+    <?php endforeach; ?>
+
+</div>
 </main>
 
 <script>

@@ -26,11 +26,11 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'student') {
 $user_id = $_SESSION['user_id'];
 
 // Fetch real applications from your SQL table
-$query = "SELECT ca.status, ca.applied_at, c.club_name, c.category 
+$query = "SELECT ca.id, ca.club_id, ca.status, ca.applied_at, c.club_name, c.category 
           FROM club_applications ca
           JOIN clubs c ON ca.club_id = c.id
           WHERE ca.user_id = ? 
-          ORDER BY ca.applied_at DESC";
+          ORDER BY ca.applied_at DESC, ca.id DESC";
 
 $stmt = $conn->prepare($query);
 $stmt->bind_param("i", $user_id);
@@ -45,8 +45,8 @@ $safeFirstName = htmlspecialchars($firstName, ENT_QUOTES, 'UTF-8');
 
 // Count statuses for the Top Stats row
 $totalApps = count($applications);
-$approvedCount = count(array_filter($applications, fn($a) => $a['status'] == 'Approved'));
-$pendingCount = count(array_filter($applications, fn($a) => $a['status'] == 'Pending'));
+$approvedCount = count(array_filter($applications, fn($a) => $a['status'] == 'approved'));
+$pendingCount = count(array_filter($applications, fn($a) => $a['status'] == 'pending'));
 ?>
 
 <!DOCTYPE html>
@@ -76,10 +76,10 @@ $pendingCount = count(array_filter($applications, fn($a) => $a['status'] == 'Pen
 <body class="bg-slate-50 text-slate-900">
 
 <!-- SIDEBAR -->
-<aside class="fixed left-0 top-0 h-full w-64 bg-white border-r z-50 flex flex-col">
-    <div class="p-8">
-        <h1 class="font-black text-blue-900 text-xl tracking-tighter">CLUB<span class="text-blue-500">SYNC</span></h1>
-        <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Student Edition</p>
+<aside class="fixed left-0 top-0 h-full flex flex-col pt-4 pb-8 h-screen w-64 border-r bg-slate-50 border-slate-200 z-50">
+     <div class="px-6 mb-8">
+        <h1 class="text-lg font-black text-blue-900">Student Portal</h1>
+        <p class="text-xs text-slate-500 font-medium">Academic Year 2025-26</p>
     </div>
     <nav class="flex-1 px-4 space-y-2">
         <a href="Student_Dashboard.php" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-100 transition-all group">
@@ -164,56 +164,64 @@ $pendingCount = count(array_filter($applications, fn($a) => $a['status'] == 'Pen
 
     <!-- 2. APPLICATION LIST -->
     <div class="space-y-4 max-w-5xl">
-        <?php if (empty($applications)): ?>
-            <div class="bg-white p-20 rounded-3xl border-2 border-dashed border-slate-200 text-center">
-                <div class="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-6">
-                    <span class="material-symbols-outlined text-5xl text-slate-300">post_add</span>
-                </div>
-                <h2 class="text-2xl font-black text-slate-900">No applications yet</h2>
-                <p class="text-slate-500 mt-2 mb-8">Start your journey by joining student organizations today.</p>
-                <a href="Student_ClubDashboard.php" class="px-8 py-4 bg-blue-900 text-white rounded-2xl font-black hover:bg-blue-800 transition-all shadow-xl shadow-blue-100 inline-block">
-                    Explore Clubs
-                </a>
-            </div>
-        <?php else: ?>
-            <?php foreach ($applications as $app): 
-                $statusColor = "bg-amber-100 text-amber-700 border-amber-200";
-                if($app['status'] == 'Approved') $statusColor = "bg-green-100 text-green-700 border-green-200";
-                if($app['status'] == 'Rejected') $statusColor = "bg-red-100 text-red-700 border-red-200";
-            ?>
-            <div class="level-1-card p-6 flex items-center justify-between hover:border-blue-400 hover:-translate-y-1 transition-all duration-300 group">
-                <div class="flex items-center gap-6">
-                    <div class="w-16 h-16 bg-slate-50 rounded-2xl flex items-center justify-center font-black text-2xl text-blue-900 border border-slate-100 group-hover:bg-blue-900 group-hover:text-white transition-all duration-500">
-                        <?= substr($app['club_name'], 0, 1) ?>
-                    </div>
-                    <div>
-                        <h3 class="text-xl font-black text-slate-900 tracking-tight"><?= htmlspecialchars($app['club_name']) ?></h3>
-                        <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1"><?= $app['category'] ?></p>
-                        
-                        <!-- 3. VISUAL PROGRESS STEPPER -->
-                        <div class="mt-4 flex items-center gap-2">
-                            <div class="h-1.5 w-12 rounded-full bg-blue-600"></div>
-                            <div class="h-1.5 w-12 rounded-full <?= ($app['status'] == 'Pending') ? 'bg-slate-200 animate-pulse' : 'bg-blue-600' ?>"></div>
-                            <div class="h-1.5 w-12 rounded-full <?= ($app['status'] == 'Approved') ? 'bg-green-500' : ($app['status'] == 'Rejected' ? 'bg-red-500' : 'bg-slate-200') ?>"></div>
-                            <span class="text-[10px] text-slate-400 font-black uppercase ml-2 tracking-tighter">
-                                <?= $app['status'] == 'Pending' ? 'Under Review' : 'Finalized' ?>
-                            </span>
-                        </div>
-                    </div>
-                </div>
 
-                <div class="text-right">
-                    <span class="<?= $statusColor ?> border px-5 py-2 rounded-2xl text-[10px] font-black uppercase tracking-widest block mb-3">
-                        <?= $app['status'] ?>
-                    </span>
-                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">
-                        Submitted: <?= date('M d, Y', strtotime($app['applied_at'])) ?>
-                    </p>
-                </div>
-            </div>
-            <?php endforeach; ?>
-        <?php endif; ?>
+<?php if (empty($applications)): ?>
+
+    <div class="bg-white p-20 rounded-3xl border-2 border-dashed border-slate-200 text-center">
+        <h2 class="text-2xl font-black text-slate-900">No applications yet</h2>
+        <p class="text-slate-500 mt-2 mb-8">Start your journey by joining student organizations today.</p>
+        <a href="Student_ClubDashboard.php" class="px-8 py-4 bg-blue-900 text-white rounded-2xl font-black">
+            Explore Clubs
+        </a>
     </div>
+
+<?php else: ?>
+
+    <?php foreach ($applications as $app): 
+
+        $statusColor = "bg-amber-100 text-amber-700 border-amber-200";
+
+        if ($app['status'] == 'approved') {
+            $statusColor = "bg-green-100 text-green-700 border-green-200";
+        } elseif ($app['status'] == 'rejected') {
+            $statusColor = "bg-red-100 text-red-700 border-red-200";
+        }
+
+    ?>
+
+    <div class="level-1-card p-6 flex items-center justify-between">
+
+        <div>
+            <h3 class="text-xl font-black"><?= htmlspecialchars($app['club_name']) ?></h3>
+            <p class="text-xs"><?= $app['category'] ?></p>
+        </div>
+
+        <div class="text-right">
+            <span class="<?= $statusColor ?> px-3 py-1 rounded-xl text-xs font-bold">
+                <?= $app['status'] ?>
+            </span>
+
+            <!-- DELETE BUTTON -->
+            <form method="POST" action="delete_application.php"
+                  onsubmit="return confirm('Are you sure you want to delete this application?');">
+
+                <input type="hidden" name="application_id" value="<?= $app['id'] ?>">
+
+                <button type="submit"
+                    class="mt-3 px-4 py-2 bg-red-500 text-white text-xs font-bold rounded-xl hover:bg-red-600 transition">
+                    Delete Application
+                </button>
+            </form>
+        </div>
+
+    </div>
+
+    <?php endforeach; ?>
+
+<?php endif; ?>
+
+</div>
+    
 </main>
 
 </body>
