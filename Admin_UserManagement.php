@@ -17,6 +17,30 @@ try {
     $pdo = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8", $username, $password);
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
+        //update user status ni siya
+     if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['toggle_status'])) {
+
+        $userId = $_POST['user_id'];
+        $currentStatus = $_POST['current_status'];
+
+        // TOGGLE STATUS
+        $newStatus = ($currentStatus === 'active')
+            ? 'inactive'
+            : 'active';
+
+        $stmt = $pdo->prepare("
+            UPDATE users
+            SET status = ?
+            WHERE id = ?
+        ");
+
+        $stmt->execute([$newStatus, $userId]);
+
+        // REFRESH PAGE
+        header("Location: Admin_UserManagement.php");
+        exit();
+    }
+
     // --- FETCH BENTO STATS ---
     $totalUsers = $pdo->query("SELECT COUNT(*) FROM users")->fetchColumn();
     $activeStudents = $pdo->query("SELECT COUNT(*) FROM users WHERE role = 'student' AND status = 'active'")->fetchColumn();
@@ -345,9 +369,33 @@ $firstName = explode(' ', trim($fullName))[0];
                         </td>
 
                         <td class="px-6 py-4 text-right">
-                            <button class="p-2 text-slate-500 hover:text-primary hover:bg-blue-50 rounded-lg">
-                                <span class="material-symbols-outlined text-lg">edit</span>
+                           <form method="POST">
+
+                            <input type="hidden"
+                                name="user_id"
+                                value="<?= $user['id'] ?>">
+
+                            <input type="hidden"
+                                name="current_status"
+                                value="<?= $user['status'] ?>">
+
+                            <button type="submit"
+                                    name="toggle_status"
+                                    class="px-3 py-2 rounded-lg text-xs font-bold transition-all
+
+                                    <?= $user['status'] === 'active'
+                                        ? 'bg-red-100 text-red-700 hover:bg-red-200'
+                                        : 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200'
+                                    ?>">
+
+                                <?= $user['status'] === 'active'
+                                    ? 'Deactivate'
+                                    : 'Activate'
+                                ?>
+
                             </button>
+
+                        </form>
                         </td>
 
                     </tr>
@@ -428,9 +476,33 @@ $firstName = explode(' ', trim($fullName))[0];
                         </td>
 
                         <td class="px-6 py-4 text-right">
-                            <button class="p-2 text-slate-500 hover:text-primary hover:bg-blue-50 rounded-lg">
-                                <span class="material-symbols-outlined text-lg">edit</span>
+                           <form method="POST">
+
+                            <input type="hidden"
+                                name="user_id"
+                                value="<?= $user['id'] ?>">
+
+                            <input type="hidden"
+                                name="current_status"
+                                value="<?= $user['status'] ?>">
+
+                            <button type="submit"
+                                    name="toggle_status"
+                                    class="px-3 py-2 rounded-lg text-xs font-bold transition-all
+
+                                    <?= $user['status'] === 'active'
+                                        ? 'bg-red-100 text-red-700 hover:bg-red-200'
+                                        : 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200'
+                                    ?>">
+
+                                <?= $user['status'] === 'active'
+                                    ? 'Deactivate'
+                                    : 'Activate'
+                                ?>
+
                             </button>
+
+                        </form>
                         </td>
 
                     </tr>
