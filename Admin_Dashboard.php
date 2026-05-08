@@ -20,19 +20,19 @@ try {
     // --- FETCH SUMMARY STATS ---
     $totalStudents = $pdo->query("SELECT COUNT(*) FROM users WHERE role = 'student'")->fetchColumn();
     $totalClubs    = $pdo->query("SELECT COUNT(*) FROM clubs")->fetchColumn();
-    $totalApps     = $pdo->query("SELECT COUNT(*) FROM applications")->fetchColumn();
-    $pendingApps   = $pdo->query("SELECT COUNT(*) FROM applications WHERE status = 'Pending'")->fetchColumn();
+    $totalApps     = $pdo->query("SELECT COUNT(*) FROM club_applications")->fetchColumn();
+    $pendingApps   = $pdo->query("SELECT COUNT(*) FROM club_applications WHERE status = 'Pending'")->fetchColumn();
 
     // --- FETCH GRAPH DATA ---
     $graphQuery = "SELECT MONTH(applied_at) as month, COUNT(*) as count 
-                   FROM applications 
+                   FROM club_applications 
                    WHERE YEAR(applied_at) = YEAR(CURDATE()) 
                    GROUP BY MONTH(applied_at)";
     $graphResults = $pdo->query($graphQuery)->fetchAll(PDO::FETCH_KEY_PAIR);
 
     // --- FETCH RECENT ACTIVITY ---
     $activityQuery = "SELECT u.name as student_name, c.club_name, a.status, a.applied_at 
-                      FROM applications a
+                      FROM club_applications a
                       JOIN users u ON a.user_id = u.id
                       JOIN clubs c ON a.club_id = c.id
                       ORDER BY a.applied_at DESC LIMIT 5";
